@@ -1,3 +1,23 @@
-fn main() {
-    println!("Hello, world!");
+use actix_web::{web, App, HttpRequest, HttpResponse, HttpServer, Responder};
+
+// a handler
+async fn greet(req: HttpRequest) -> impl Responder {
+    let name = req.match_info().get("name").unwrap_or("World");
+    format!("Hello {}!", &name)
+}
+
+async fn health_check() -> impl Responder {
+    HttpResponse::Ok()
+}
+
+#[tokio::main]
+async fn main() -> Result<(), std::io::Error> {
+    HttpServer::new(|| {
+        App::new()
+            .route("/", web::get().to(greet))  // pass get request to handler
+            .route("/health_check", web::get().to(health_check))
+    })
+    .bind("127.0.0.1:8000")?
+    .run()
+    .await
 }
